@@ -1,0 +1,20 @@
+const mongoose = require('mongoose');
+const User = require('./src/models/user.model');
+require('dotenv').config();
+
+const findUsers = async () => {
+    try {
+        await mongoose.connect(process.env.DB_URL);
+        console.log('Connected to DB');
+        
+        const users = await User.find({}, '_id name email role wallet');
+        console.log(JSON.stringify(users, null, 2));
+        
+        await mongoose.connection.close();
+    } catch (error) {
+        console.error(error);
+        process.exit(1);
+    }
+};
+
+findUsers();
