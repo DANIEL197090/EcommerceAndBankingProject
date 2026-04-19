@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import productRoutes from './routes/product.routes';
+import externalProductRoutes from './routes/external-product.routes';
 import authRoutes from './routes/auth.routes';
 import uploadRoutes from './routes/upload.routes';
 import walletRoutes from './routes/wallet.routes';
@@ -30,6 +31,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/external-products", externalProductRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/user", userRoutes);
