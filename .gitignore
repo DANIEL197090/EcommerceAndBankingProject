@@ -1,5 +1,10 @@
 .env
-node_modules
-dist
+node_modules/
+dist/
 .DS_Store
 uploads/
+.npm-cache/
+*.log
+.vscode/
+.idea/
+.npm-cache
