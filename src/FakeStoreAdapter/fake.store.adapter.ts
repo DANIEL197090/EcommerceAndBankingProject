@@ -1,23 +1,37 @@
 import axios from 'axios';
 import { Product, CreateProductDto, UpdateProductDto } from '../types/product';
 
-const baseURL = 'https://fakestoreapi.com/products';
+const baseURL = 'https://dummyjson.com/products';
 
 const axiosInstance = axios.create({
   baseURL,
   headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    'User-Agent': 'Mozilla/5.0'
+  }
+});
+
+// Mapping DummyJSON response to our Product interface
+const mapProduct = (p: any): Product => ({
+  id: p.id,
+  title: p.title,
+  price: p.price,
+  description: p.description,
+  category: p.category,
+  image: p.thumbnail || (p.images && p.images[0]) || '',
+  rating: {
+    rate: p.rating || 0,
+    count: p.stock || 0
   }
 });
 
 export class FakeStoreAdapter {
   /**
-   * Fetches all products from FakeStoreAPI
+   * Fetches all products from External API
    */
   static async getAllProducts(): Promise<Product[]> {
     try {
-      const response = await axiosInstance.get<Product[]>('/');
-      return response.data;
+      const response = await axiosInstance.get<{ products: any[] }>('/');
+      return response.data.products.map(mapProduct);
     } catch (error) {
       console.error('Error fetching products:', error);
       throw error;
@@ -30,8 +44,8 @@ export class FakeStoreAdapter {
    */
   static async getProductById(id: number): Promise<Product> {
     try {
-      const response = await axiosInstance.get<Product>(`/${id}`);
-      return response.data;
+      const response = await axiosInstance.get<any>(`/${id}`);
+      return mapProduct(response.data);
     } catch (error) {
       console.error(`Error fetching product with id ${id}:`, error);
       throw error;
@@ -44,8 +58,13 @@ export class FakeStoreAdapter {
    */
   static async addProduct(productData: CreateProductDto): Promise<Product> {
     try {
-      const response = await axiosInstance.post<Product>('/', productData);
-      return response.data;
+      // Map outgoing field 'image' to 'thumbnail' for DummyJSON if needed, 
+      // but DummyJSON 'add' returns exactly what you send + id
+      const response = await axiosInstance.post<any>('/add', {
+        ...productData,
+        thumbnail: productData.image
+      });
+      return mapProduct(response.data);
     } catch (error) {
       console.error('Error adding product:', error);
       throw error;
@@ -59,8 +78,11 @@ export class FakeStoreAdapter {
    */
   static async updateProduct(id: number, productData: UpdateProductDto): Promise<Product> {
     try {
-      const response = await axiosInstance.put<Product>(`/${id}`, productData);
-      return response.data;
+      const response = await axiosInstance.put<any>(`/${id}`, {
+        ...productData,
+        thumbnail: productData.image
+      });
+      return mapProduct(response.data);
     } catch (error) {
       console.error(`Error updating product with id ${id}:`, error);
       throw error;
@@ -73,8 +95,8 @@ export class FakeStoreAdapter {
    */
   static async deleteProduct(id: number): Promise<Product> {
     try {
-      const response = await axiosInstance.delete<Product>(`/${id}`);
-      return response.data;
+      const response = await axiosInstance.delete<any>(`/${id}`);
+      return mapProduct(response.data);
     } catch (error) {
       console.error(`Error deleting product with id ${id}:`, error);
       throw error;
