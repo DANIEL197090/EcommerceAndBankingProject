@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
 import mongoose from 'mongoose';
+import sendEmail from '../utils/sendEmail';
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -50,6 +51,18 @@ export const register = async (req: Request, res: Response, next: NextFunction):
                 response.wallet = user.wallet;
             }
 
+            // Send registration email
+            try {
+                await sendEmail({
+                    email: user.email,
+                    subject: 'Welcome to Our Professional Simple CRUD App',
+                    message: `Hi ${user.name},\n\nWelcome to our platform! Your account has been successfully created.\n\nBest regards,\nThe Team`
+                });
+            } catch (err) {
+                console.error('Email could not be sent', err);
+                // We don't want to fail the registration if email fails
+            }
+
             res.status(201).json(response);
         } else {
             res.status(400);
@@ -81,6 +94,17 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 
             if (user.role === 'user') {
                 response.wallet = user.wallet;
+            }
+
+            // Send login email
+            try {
+                await sendEmail({
+                    email: user.email,
+                    subject: 'Login Alert',
+                    message: `Hi ${user.name},\n\nYou have successfully logged into your account at ${new Date().toLocaleString()}.\n\nIf this wasn't you, please secure your account.`
+                });
+            } catch (err) {
+                console.error('Email could not be sent', err);
             }
 
             res.json(response);
